@@ -1,0 +1,49 @@
+local depth = 50
+local length = 50
+--bore goes directly down
+local function bore(depth)
+	turtle.digDown()
+	turtle.down()
+end
+
+local function digForward()
+    turtle.dig()
+    turtle.forward()
+end
+
+local function turnAround()
+    turtle.turnLeft()
+    turtle.turnLeft()
+end
+
+local function goBack()
+    turtle.forward()
+end
+
+local function backUp()
+    turtle.up()
+end
+
+
+for i = 1, depth do
+    bore()
+end
+
+for i = 1, length do
+    digForward()
+end
+
+for i = 1, 1 do
+    turnAround()
+end
+
+for i = 1, length do
+    goBack()
+end
+
+for i = 1, depth do
+    backUp()
+end
+
+
+
