@@ -1,49 +1,151 @@
-local depth = 50
-local length = 50
---bore goes directly down
-local function bore(depth)
-	turtle.digDown()
-	turtle.down()
+local depth = tonumber(arg[1]) or 50
+local length = tonumber(arg[2]) or 50
+local blockCounts = {}
+
+-- Refuel if needed
+local function tryRefuel()
+    for i = 1, 16 do
+        turtle.select(i)
+        if turtle.getItemCount(i) > 0 then
+            local itemDetail = turtle.getItemDetail(i)
+            if itemDetail and itemDetail.name and string.find(itemDetail.name, "coal") then
+                turtle.refuel(1)
+                if turtle.getFuelLevel() > 100 then
+                    return
+                end
+            end
+        end
+    end
 end
 
+-- Bore goes directly down
+local function bore()
+    while turtle.detectDown() do
+        if not turtle.digDown() then
+            sleep(0.5)
+        end
+    end
+    turtle.down()
+end
+
+-- Dig forward and count blocks
 local function digForward()
-    turtle.dig()
+    if turtle.detect() then
+        local success, data = turtle.inspect()
+        if success then
+            local blockName = data.name
+            blockCounts[blockName] = (blockCounts[blockName] or 0) + 1
+        end
+        while turtle.detect() do
+            if not turtle.dig() then
+                sleep(0.5)
+            end
+            tryRefuel()
+        end
+    end
     turtle.forward()
 end
 
+-- Turn around
 local function turnAround()
     turtle.turnLeft()
     turtle.turnLeft()
 end
 
+-- Move back
 local function goBack()
     turtle.forward()
 end
 
+-- Move up
 local function backUp()
+    while turtle.detectUp() do
+        if not turtle.digUp() then
+            sleep(0.5)
+        end
+    end
     turtle.up()
 end
 
+-- Drop excess items when inventory is full
+local function dropExcess()
+    local totalItems = 0
+    for i = 1, 16 do
+        totalItems = totalItems + turtle.getItemCount(i)
+    end
+    
+    if totalItems >= 128 then  -- Approaching inventory limit
+        for i = 1, 16 do
+            if turtle.getItemCount(i) > 10 then
+                turtle.select(i)
+                turtle.dropDown(turtle.getItemCount(i) - 5)
+            end
+        end
+    end
+end
 
+-- Mine a square layer
+local function mineLayer(size)
+    for i = 1, size do
+        for j = 1, size do
+            if j > 1 then
+                digForward()
+            end
+            dropExcess()
+            tryRefuel()
+        end
+        
+        if i < size then
+            if i % 2 == 1 then
+                turtle.turnRight()
+                digForward()
+                turtle.turnRight()
+            else
+                turtle.turnLeft()
+                digForward()
+                turtle.turnLeft()
+            end
+        end
+    end
+    
+    -- Return to starting position of the layer
+    if size % 2 == 0 then
+        turnAround()
+        for i = 1, size - 1 do
+            goBack()
+        end
+        turtle.turnRight()
+        for i = 1, size - 1 do
+            goBack()
+        end
+        turtle.turnLeft()
+    else
+        for i = 1, size - 1 do
+            goBack()
+        end
+        turtle.turnLeft()
+        for i = 1, size - 1 do
+            goBack()
+        end
+        turtle.turnLeft()
+    end
+end
+
+-- Go to mining depth
 for i = 1, depth do
     bore()
 end
 
-for i = 1, length do
-    digForward()
-end
+-- Mine the square area
+mineLayer(length)
 
-for i = 1, 1 do
-    turnAround()
-end
-
-for i = 1, length do
-    goBack()
-end
-
+-- Return to surface
 for i = 1, depth do
     backUp()
 end
 
-
-
+-- Print block counts
+print("Block counts:")
+for blockName, count in pairs(blockCounts) do
+    print(blockName .. ": " .. count)
+end
