@@ -140,7 +140,32 @@ end
 -- Mine the square area
 mineLayer(length)
 
--- Return to surface
+-- Return to the starting position of the layer before going up
+-- First, return to the exact starting position (0,0) of the mining area
+if length % 2 == 0 then
+    -- For even length, we need to move to position (0,0)
+    turnAround()
+    for i = 1, length - 1 do
+        goBack()
+    end
+    turtle.turnRight()
+    for i = 1, length - 1 do
+        goBack()
+    end
+    turtle.turnLeft()
+else
+    -- For odd length, we're already at the correct column, just need to move to row 0
+    for i = 1, length - 1 do
+        goBack()
+    end
+    turtle.turnLeft()
+    for i = 1, length - 1 do
+        goBack()
+    end
+    turtle.turnLeft()
+end
+
+-- Now go back up the same hole
 for i = 1, depth do
     backUp()
 end
