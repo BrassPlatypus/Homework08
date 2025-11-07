@@ -1,5 +1,6 @@
-local depth = tonumber(arg[1]) or 50
-local length = tonumber(arg[2]) or 50
+-- This code works completely as of 11/4/25 but it does not return at exactly the same point. should be relatively easy to fix.
+local depth = tonumber(arg[1]) 
+local length = tonumber(arg[2])
 local blockCounts = {}
 
 -- Refuel if needed
